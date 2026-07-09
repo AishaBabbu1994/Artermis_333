@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -860,12 +859,12 @@ Instrucciones:
 
     async function sendGroqRequest(prompt) {
       const requestBody = {
-        model: 'openai/gpt-oss-20b',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           {
             role: 'system',
             content:
-              'Eres un asistente educativo que explica temas complejos a niños usando un lenguaje sencillo, ejemplos claros y un tono amable.'
+              'Eres un asistente educativo que explica temas complejos con un lenguaje sencillo, ejemplos claros y un tono amable. Nunca repitas exactamente el texto de la pregunta, siempre da una explicación nueva.'
           },
           {
             role: 'user',
@@ -904,29 +903,17 @@ Instrucciones:
     function extractGroqChatText(payload) {
       if (!payload) return '';
       if (Array.isArray(payload.choices) && payload.choices.length > 0) {
-        const choice = payload.choices[0];
-        const content = choice.message?.content || choice.text;
-        if (typeof content === 'string' && content.trim()) return content.trim();
-        if (Array.isArray(content)) {
-          return content.map((item) => item?.text || item?.content || '').join(' ').trim();
-        }
-      }
-      return extractGroqText(payload);
-    }
-
-    function extractGroqText(payload) {
-      if (!payload) return '';
-      if (typeof payload.output_text === 'string') return payload.output_text.trim();
-      if (Array.isArray(payload.output) && payload.output.length > 0) {
-        return payload.output.map((item) => (item.text || item.content || '')).join(' ').trim();
-      }
-      if (Array.isArray(payload.results) && payload.results.length > 0) {
-        const firstResult = payload.results[0];
-        if (Array.isArray(firstResult.output) && firstResult.output.length > 0) {
-          return firstResult.output
-            .map((item) => (item.content || item.text || ''))
-            .join(' ')
-            .trim();
+        const message = payload.choices[0].message;
+        if (message) {
+          if (typeof message.content === 'string' && message.content.trim()) {
+            return message.content.trim();
+          }
+          if (Array.isArray(message.content)) {
+            return message.content
+              .map((item) => item?.text || item?.content || '')
+              .join(' ')
+              .trim();
+          }
         }
       }
       return JSON.stringify(payload, null, 2);
