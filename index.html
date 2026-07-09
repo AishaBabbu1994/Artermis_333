@@ -429,6 +429,7 @@
     <section class="hero">
       <div>
         <span class="badge"><i class="fa-solid fa-rocket"></i> Integración Groq</span>
+        <span class="badge" id="styleBadge">Estilo: Simple</span>
         <h1 class="hero-heading">Explica lo difícil de forma <span>fácil</span></h1>
         <p class="hero-copy">
           Artemis_333 convierte ideas complejas en explicaciones claras para niños usando IA Groq.
@@ -602,7 +603,8 @@
       historyEmpty: document.getElementById('historyEmpty'),
       errorBox: document.getElementById('errorBox'),
       mainForm: document.getElementById('mainForm'),
-      audioFileNote: document.getElementById('audioFileNote')
+      audioFileNote: document.getElementById('audioFileNote'),
+      styleBadge: document.getElementById('styleBadge')
     };
 
     function initialize() {
@@ -617,6 +619,7 @@
       dom.copyResultButton.addEventListener('click', copyResultToClipboard);
       detectAudioSupport();
       loadHistory();
+      dom.styleBadge.textContent = `Estilo: ${state.style}`;
       render();
     }
 
@@ -673,6 +676,7 @@
 
     function handleStyleChange(event) {
       state.style = event.target.value;
+      dom.styleBadge.textContent = `Estilo: ${state.style}`;
     }
 
     function handleInputChange() {
@@ -841,131 +845,83 @@
     }
 
     function buildAnalogiesPrompt({ text, entryType, contentSource, ageRules }) {
-      return `Eres un experto educador especializado en explicar temas complejos a niños.
-Tu objetivo es simplificar el tema proporcionado para un público de ${state.age} usando un estilo de analogías concretas.
+      return `Tema para explicar a un niño de ${state.age}: ${text}
+Modalidad: Analogía física obligatoria.
 
-Directrices:
-- Responde SIEMPRE en Español.
-- Usa vocabulario sencillo apropiado para la edad.
-- Evita tecnicismos o explícalos de inmediato con términos simples.
-- Mantén las frases cortas y claras.
-- Mantén un tono amable, alentador y cercano.
-- Sé conciso pero preciso.
-- Usa frases cortas, muy fáciles de entender.
-- Haz que la explicación suene como una charla amable con un niño.
-- No repitas la pregunta: explica con una imagen nueva y cariñosa.
-Tipo de analogía: Usa objetos muy físicos y visibles: pajita, casita, manguera, túnel, camino, mochila, río, castillo o juguete conocido.
-Explicación: compara el tema con un objeto cotidiano y describe cómo funciona "por dentro" usando esa comparación.
-Incluye un saludo inicial cálido ('¡Hola!').
-
-Tema: ${text}
-Tipo de entrada: ${entryType}
-Fuente del contenido: ${contentSource}
-
-ESTRUCTURA NARRATIVA DEL OUTPUT
-Escribe como si le hablaras directo al niño, con mucho cariño y usando su imaginación. Inspírate en este ejemplo de tono:
-
-"¡Hola! Imagina que dentro de tu nariz, justo entre tus ojitos, tienes una **casita mágica** con muchos pasillos pequeñitos y cuartos secretos. Por esos pasillos es por donde pasa el aire que respiras.
-A veces, esos pasillos se llenan de 'basurita' o de muchos mocos que se quedan atrapados, como cuando dejas todos tus juguetes tirados y ya no puedes caminar por tu habitación. ¡Eso hace que te cueste mucho respirar!
-La **etmoidectomía** es como una 'Gran Limpieza'. El doctor, que es como un superhéroe del orden, entra a esa casita y quita las paredes que están estorbando o limpia los cuartos que están muy llenos.
-Al final, es como si abrieran todas las ventanas de la casa: el aire puede entrar y salir libremente, ¡y tú te sientes mucho mejor para jugar y correr!"
-
-Sigue estas partes en orden:
-1) SALUDO Y PORTADA MENTAL: Empieza con "¡Hola!" y crea una imagen mental con "casita", "pasillos", "túneles", "manguera" o "camino" donde sucede la acción.
-2) EL PROBLEMA: Explica de forma sencilla qué pasa cuando algo falla o se "llena de basurita", comparándolo con algo cotidiano.
-3) LA EXPLICACIÓN / SOLUCIÓN: Cuenta cómo funciona el tema usando la analogía principal, paso a paso y con frases cortas.
-4) FINAL FELIZ: Cierra contando cómo se siente mejor y ya puede jugar, correr o descansar.
-5) MINI-QUIZ: ${state.age === '5 años' ? '1' : state.age === '10 años' ? '2' : '3'} pregunta(s) corta(s) y divertida(s) para comprobar lo aprendido.
+Reglas estrictas:
+- Respondes SIEMPRE en Español.
+- Usas UNA SOLA analogía física y la mantienes desde el primer párrafo hasta el final.
+- La analogía debe ser con objetos muy físicos y visibles: casita, pasillos, túnel, camino, manguera, pajita, mochila, río o castillo.
+- Está prohibido inventar personajes extra, está prohibido usar "Había una vez" y está prohibido convertirla en cuento.
+- Estructura obligatoria:
+  a) Saludo cálido + imagen mental inicial con la analogía.
+  b) Problema comparado dentro de esa misma analogía.
+  c) Explicación/solución usando esa analogía paso a paso.
+  d) Final feliz dentro de la misma analogía.
+  e) Mini-quiz final de ${state.age === '5 años' ? '1' : state.age === '10 años' ? '2' : '3'} pregunta(s) muy corta(s).
 
 RESTRICCIONES DE LONGITUD
 ${ageRules}
 
-Entrega el resultado SOLO como esa narración cariñosa, sin texto ni encabezados extra, sin viñetas rígidas.`;
+Entrega SOLO la narración, sin encabezados ni viñetas.`;
     }
 
     function buildStoryPrompt({ text, entryType, contentSource, ageRules }) {
-      return `Eres un experto educador especializado en explicar temas complejos a niños.
-Tu objetivo es simplificar el tema proporcionado para un público de ${state.age} usando un estilo de historia corta.
+      return `Tema para explicar a un niño de ${state.age}: ${text}
+Modalidad: Micro-historia simbólica obligatoria.
 
-Directrices:
-- Responde SIEMPRE en Español.
-- Usa vocabulario sencillo apropiado para la edad.
-- Evita tecnicismos o explícalos de inmediato con términos simples.
-- Mantén las frases cortas y claras.
-- Mantén un tono amable, alentador y cercano.
-- Sé conciso pero preciso.
-- Usa frases cortas, muy fáciles de entender.
-- Haz que la explicación suene como una charla amable con un niño.
-- No repitas la pregunta: explica con una imagen nueva y cariñosa.
-Tipo de historia: micro-historia con personajes simbólicos: casita, pasillo, túnel, manguera, camino, héroe cotidiano.
-Incluye inicio amable, conflicto sencillo y desenlace feliz.
-
-Tema: ${text}
-Tipo de entrada: ${entryType}
-Fuente del contenido: ${contentSource}
-
-ESTRUCTURA NARRATIVA DEL OUTPUT
-Escribe como si le hablaras directo al niño, con mucho cariño. Inspírate en este ejemplo de tono:
-
-"¡Hola! Imagina que dentro de tu nariz, justo entre tus ojitos, tienes una **casita mágica** con muchos pasillos pequeñitos y cuartos secretos. Por esos pasillos es por donde pasa el aire que respiras.
-A veces, esos pasillos se llenan de 'basurita' o de muchos mocos que se quedan atrapados, como cuando dejas todos tus juguetes tirados y ya no puedes caminar por tu habitación. ¡Eso hace que te cueste mucho respirar!
-Un día, la casita se sintió muy tapada y los pasillos no querían dejar pasar el aire. Todos los habitantes de la casita empezaron a toser para pedir ayuda. Entonces llegó el doctor-superhéroe con su linterna y su sonrisa grande. Con mucho cuidado, abrió los pasillos atascados y limpió los cuartos más llenos.
-Al final, la casita respiró fuerte por todas sus ventanas. El aire volvió a entrar y salir, y otra vez todo estaba listo para jugar, correr y reír sin parar."
-
-Sigue estas partes en orden:
-1) SALUDO Y PORTADA MENTAL: Empieza con "¡Hola!" y crea una imagen mental tipo cuento con "casita", "pasillos", "túneles", "manguera" o "camino".
-2) INICIO DE HISTORIA: presenta personajes simbólicos y el lugar donde sucede la acción.
-3) CONFLICTO: muestra algo que se rompe, tapa o llena de "basurita", como un problema pequeño y visible.
-4) SOLUCIÓN: el héroe resuelve el problema paso a paso, de forma sencilla y amable.
-5) FINAL FELIZ: cierra con sensación de paz, libertad o alegría para jugar.
-6) MINI-QUIZ FINAL: ${state.age === '5 años' ? '1' : state.age === '10 años' ? '2' : '3'} pregunta(s) corta(s) y divertida(s) para comprobar lo aprendido.
+Reglas estrictas:
+- Respondes SIEMPRE en Español.
+- Usas personajes simbólicos: casita, pasillo, túnel, manguera, camino, superhéroe cotidiano.
+- Estructura obligatoria:
+  a) Saludo cálido + inicio amable tipo cuento.
+  b) Presentas personajes/lugar.
+  c) Conflicto pequeño y visible COMPARABLE al tema.
+  d) Solución paso a paso narrada.
+  e) Final feliz y sensación de paz/libertad/alegría.
+  f) Mini-quiz final de ${state.age === '5 años' ? '1' : state.age === '10 años' ? '2' : '3'} pregunta(s) muy corta(s).
+- Está prohibido dar la explicación como si fuera un profesor dando clase, sin personajes, o como si fuera una analogía directa.
 
 RESTRICCIONES DE LONGITUD
 ${ageRules}
 
-Entrega el resultado SOLO como esa narración cariñosa, sin texto ni encabezados extra.`;
+Entrega SOLO la narración, sin encabezados ni viñetas.`;
     }
 
     function buildSimplePrompt({ text, entryType, contentSource, ageRules }) {
-      return `Eres un experto educador especializado en explicar temas complejos a niños.
-Tu objetivo es simplificar el tema proporcionado para un público de ${state.age} usando palabras muy simples y una explicación directa.
+      return `Tema: ${text}
+Edad: ${state.age}
+Modalidad: Explicación ultra simple directa.
 
-Directrices:
-- Responde SIEMPRE en Español.
-- Usa vocabulario sencillo apropiado para la edad.
-- Evita tecnicismos o explícalos de inmediato con términos simples.
-- Mantén las frases cortas y claras.
-- Mantén un tono amable, alentador y cercano.
-- Sé conciso pero preciso.
-- Usa frases cortas, muy fáciles de entender.
-- Haz que la explicación suene como una charla amable con un niño.
-- No repitas la pregunta: explica con una imagen nueva y cariñosa.
-Tipo de salida: explicación simple, comparación cotidiana y cierre tranquilizador, sin historia estructurada.
+Formato OBLIGATORIO y NO NEGOCIABLE:
+"[Tema] es como [una imagen simple muy concreta]. [Explicación de qué hace o qué soluciona, tan clara que un niño de ${state.age} entiende cada palabra sin dudar.]"
 
-Tema: ${text}
-Tipo de entrada: ${entryType}
-Fuente del contenido: ${contentSource}
+REGLAS ESTRICTAS DE CLARIDAD:
+- Respondes SIEMPRE en Español.
+- Empiezas DIRECTAMENTE por el tema, sin saludo, sin "¡Hola!", sin introducción.
+- Usas UNA sola imagen mental simple, muy concreta y física (cable, manguera, casita, túnel, río, mochila, camino).
+- Cualquier palabra que no sea de uso diario para un niño de ${state.age} DEBE explicarse en la misma frase con sinónimos simples.
+- La explicación de qué hace/soluciona debe ser TAN clara que no quede ninguna parte del tema sin entender.
+- Entre 1 y 2 frases máximo.
+- Prohibido inventar personajes, cuentos, historias, viñetas o títulos.
+- Prohibido dar por sentado que el niño sabe lo que es el tema.
+- No repitas el texto del tema palabra por palabra.
 
-ESTRUCTURA NARRATIVA DEL OUTPUT
-Escribe como si le hablaras directo al niño, con mucho cariño. Inspírate en este ejemplo de tono:
-
-"¡Hola! Imagina que dentro de tu nariz, justo entre tus ojitos, tienes una **casita mágica** con muchos pasillos pequeñitos y cuartos secretos. Por esos pasillos es por donde pasa el aire que respiras.
-A veces, esos pasillos se llenan de 'basurita' o de muchos mocos que se quedan atrapados, como cuando dejas todos tus juguetes tirados y ya no puedes caminar por tu habitación. ¡Eso hace que te cueste mucho respirar!
-La **etmoidectomía** es como una 'Gran Limpieza'. El doctor, que es como un superhéroe del orden, entra a esa casita y quita las paredes que están estorbando o limpia los cuartos que están muy llenos.
-Al final, es como si abrieran todas las ventanas de la casa: el aire puede entrar y salir libremente, ¡y tú te sientes mucho mejor para jugar y correr!"
-
-Sigue estas partes en orden:
-1) SALUDO Y PORTADA MENTAL: Empieza con "¡Hola!" y crea una imagen mental simple con "casita", "pasillos", "túneles", "manguera" o "camino".
-2) EXPLICACIÓN SIMPLE: define el tema en una frase fácil y agrega una comparación cotidiana.
-3) CIERRE TRANQUILIZADOR: muestra la mejora o el resultado en lenguaje positivo y breve.
-4) MINI-QUIZ: ${state.age === '5 años' ? '1' : state.age === '10 años' ? '2' : '3'} pregunta(s) corta(s) y divertida(s) para comprobar lo aprendido.
-
-RESTRICCIONES DE LONGITUD
-${ageRules}
-
-Entrega el resultado SOLO como esa narración cariñosa, sin texto ni encabezados extra.`;
+Entrega SOLO esas 1 o 2 frases directas.`;
     }
 
+
+    function getSystemContent() {
+      if (state.style === 'Analogía') {
+        return 'Eres un experto educador que explica temas complejos a niños usando UNA SOLA analogía física muy clara (casita, pasillos, túnel, camino, manguera, pajita, mochila, río). Prohibido iniciar con "Había una vez", inventar personajes extras o usar estructura de cuento. Prohibido dar explicación teórica aparte. Respondes SIEMPRE en Español, frases cortas, tono cariñoso, vocabulario sencillo.';
+      }
+
+      if (state.style === 'Historia') {
+        return 'Eres un experto educador que explica temas complejos a niños mediante UNA micro-historia SIMBÓLICA muy breve. Usa personajes como casita, pasillo, túnel, manguera, camino o superhéroe cotidiano. Estructura obligatoria: inicio amable, conflicto visible COMPARABLE al tema, solución paso a paso y final feliz. No des explicación teórica aparte. Respondes SIEMPRE en Español, frases cortas, tono de cuento.';
+      }
+
+      return 'Eres un experto educador que explica temas complejos a niños con frases MUY SIMPLES Y DIRECTAS. Formato obligatorio: "[Tema] es como [imagen simple]. [Explicación clara de qué hace o soluciona, sin palabras raras, sin dejar términos sin explicar]." No uses saludo, no uses historia, no uses personajes, no uses títulos, no uses viñetas. Cada palabra debe ser comprensible para un niño. Respondes SIEMPRE en Español, 1 o 2 frases máximo.';
+    }
 
     async function sendGroqRequest(prompt) {
       const requestBody = {
@@ -973,8 +929,7 @@ Entrega el resultado SOLO como esa narración cariñosa, sin texto ni encabezado
         messages: [
           {
             role: 'system',
-            content:
-              'Eres un experto educador especializado en explicar temas complejos a niños. Usa palabras muy simples, frases cortas, ejemplos cotidianos y un tono amable. Nunca repitas exactamente el texto de la pregunta, siempre da una explicación nueva y clara.'
+            content: getSystemContent()
           },
           {
             role: 'user',
