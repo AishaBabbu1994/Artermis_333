@@ -800,7 +800,7 @@
         return setError('Ingresa tu clave de API de Groq antes de continuar.');
       }
 
-      const trimmedTopic = state.topic || dom.topicInput.value.trim();
+      const trimmedTopic = dom.topicInput.value.trim() || state.topic || dom.topicInput.value.trim();
       const hasAudioTranscript = state.audioTranscript.trim().length > 0;
       const hasAudioFile = state.audioFile && state.audioFile.type.startsWith('audio/');
       const hasTextFile = state.audioFile && state.audioFile.type === 'text/plain';
@@ -840,21 +840,47 @@
 
       const content = hasAudioTranscript ? state.audioTranscript : text;
 
+      const ageRules = {
+        '5 años': 'Máximo 6-8 frases. Longitud muy corta. 1 ejemplo y 1 pregunta tipo mini-quiz.',
+        '10 años': 'Máximo 10-12 frases. Longitud media. 1 ejemplo y 2 preguntas tipo mini-quiz.',
+        '14 años': 'Máximo 14-16 frases. Longitud media-larga. 2 ejemplos y 3 preguntas tipo mini-quiz.'
+      }[state.age] || 'Máximo 12-14 frases. Usa vocabulario sencillo y ejemplos claros.';
+
       return `Eres un asistente educativo que explica temas complejos a niños.
 
-Edad: ${state.age}
-Estilo: ${state.style}
+OBJETIVO
+- Explicar el concepto de forma clara, precisa y sin inventar datos.
 
-${entryType}
-${contentSource}
+DATOS DE ENTRADA
+Edad objetivo: ${state.age}
+Estilo: ${state.style}
+Tipo de entrada: ${entryType}
+Fuente del contenido: ${contentSource}
+Contenido:
 ${content}
 
-Instrucciones:
-- Responde siempre en español.
-- Usa vocabulario sencillo para la edad indicada.
-- Mantén frases cortas, ejemplos claros y tono amable.
-- Si usas analogías, hazlas familiares para un niño.
-- Responde con un texto limpio, directo y fácil de entender.`;
+REGLAS IMPORTANTES (anti-errores)
+1) Responde SIEMPRE en español.
+2) No inventes hechos, números, fechas o causas. Si falta información, di que no está claro y haz una suposición razonable SOLO si es obvio (y etiquétala como "Suposición").
+3) Evita frases vagas. Define cada idea en una oración.
+4) Si aparece un término difícil, primero dilo y luego explica su significado con una frase sencilla.
+
+FORMATO OBLIGATORIO DEL OUTPUT (no omitas secciones)
+A) Idea central (1 frase)
+B) Explicación paso a paso (3-6 pasos cortos con viñetas)
+C) Ejemplo (1 ejemplo concreto)
+D) Mini-quiz (${state.age === '5 años' ? '1' : state.age === '10 años' ? '2' : '3'} preguntas cortas)
+E) Resumen (1-2 frases)
+
+RESTRICCIONES DE LONGITUD
+${ageRules}
+
+Estilo adicional
+- Simple: explicación directa, pocas metáforas.
+- Analogía: usa una analogía corta y familiar y conecta cada parte con el concepto.
+- Historia: conviértelo en una historia breve con personajes y una moraleja relacionada al aprendizaje.
+
+Entrega el resultado SOLO con el formato solicitado, sin texto extra.`;
     }
 
     async function sendGroqRequest(prompt) {
@@ -956,7 +982,12 @@ Instrucciones:
     }
 
     function updateStatus() {
-      const filled = state.topic.trim().length > 0 || state.audioTranscript.trim().length > 0 || state.audioFile;
+      const currentTopic = dom.topicInput.value.trim();
+      const hasText = currentTopic.length > 0;
+      const hasAudioTranscript = state.audioTranscript.trim().length > 0;
+      const hasAudioFile = !!(state.audioFile && state.audioFile.type && state.audioFile.type.startsWith('audio/'));
+
+      const filled = hasText || hasAudioTranscript || hasAudioFile;
       dom.submitButton.disabled = state.isLoading || !filled;
     }
 
