@@ -515,16 +515,16 @@
               <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
                 <button type="button" class="button-pill active" data-age="5 años">5 años</button>
                 <button type="button" class="button-pill" data-age="10 años">10 años</button>
-                <button type="button" class="button-pill" data-age="14 años">14 años</button>
+                <button type="button" class="button-pill" data-age="Adolescente">Adolescente</button>
               </div>
             </div>
 
             <div>
               <label class="field-label" for="styleSelect">Estilo</label>
               <select id="styleSelect" class="select-base">
-                <option value="Simple">Simple</option>
-                <option value="Analogía">Analogía</option>
-                <option value="Historia">Historia</option>
+                <option value="Palabras Simples">Palabras Simples</option>
+                <option value="Analogía / Metáfora">Analogía / Metáfora</option>
+                <option value="Historia Corta">Historia Corta</option>
               </select>
             </div>
 
@@ -574,10 +574,22 @@
   </div>
 
   <script>
+    const ChildAge = Object.freeze({
+      FIVE: '5 años',
+      TEN: '10 años',
+      TEEN: 'Adolescente'
+    });
+
+    const ExplanationStyle = Object.freeze({
+      SIMPLE: 'Palabras Simples',
+      ANALOGY: 'Analogía / Metáfora',
+      STORY: 'Historia Corta'
+    });
+
     const state = {
       mode: 'text',
-      age: '5 años',
-      style: 'Simple',
+      age: ChildAge.FIVE,
+      style: ExplanationStyle.SIMPLE,
       apiKey: '',
       topic: '',
       audioTranscript: '',
@@ -840,48 +852,51 @@
 
       const content = hasAudioTranscript ? state.audioTranscript : text;
 
+      const request = {
+        topic: content,
+        age: state.age,
+        style: state.style
+      };
+
       const ageRules = {
-        '5 años': 'Máximo 6-8 frases. Longitud muy corta. 1 ejemplo y 1 pregunta tipo mini-quiz.',
-        '10 años': 'Máximo 10-12 frases. Longitud media. 1 ejemplo y 2 preguntas tipo mini-quiz.',
-        '14 años': 'Máximo 14-16 frases. Longitud media-larga. 2 ejemplos y 3 preguntas tipo mini-quiz.'
-      }[state.age] || 'Máximo 12-14 frases. Usa vocabulario sencillo y ejemplos claros.';
+        [ChildAge.FIVE]: 'Máximo 6-8 frases. Longitud muy corta. 1 ejemplo y 1 pregunta tipo mini-quiz.',
+        [ChildAge.TEN]: 'Máximo 10-12 frases. Longitud media. 1 ejemplo y 2 preguntas tipo mini-quiz.',
+        [ChildAge.TEEN]: 'Máximo 14-16 frases. Longitud media-larga. 2 ejemplos y 3 preguntas tipo mini-quiz.'
+      }[request.age] || 'Máximo 12-14 frases. Usa vocabulario sencillo y ejemplos claros.';
 
-      return `Eres un asistente educativo especializado en ELI5 (Explain Like I'm Five).
+      const styleGuidance = request.style === ExplanationStyle.ANALOGY
+        ? "- Si el estilo es 'Analogía / Metáfora', usa una comparación muy simple y visual, como si estuvieras explicando a un niño de 5 años. Haz que el concepto se parezca a algo cotidiano como una tubería, una casita, un juguete, un parque o un camino. Explica con imágenes mentales fáciles de ver y con pasos sencillos."
+        : request.style === ExplanationStyle.STORY
+          ? "- Si el estilo es 'Historia Corta', crea una pequeña historia amable y visual, como si fueras a contarle un cuento a un niño. Empieza con un saludo sencillo, usa un personaje o una casita imaginaria, muestra un problema pequeño y luego explica el concepto como parte de esa historia. Mantén la narración breve, clara y tranquila."
+          : "- Si el estilo es 'Palabras Simples', usa una explicación muy amable, como si se la estuvieras diciendo a un niño pequeño. Comienza con '¡Hola! Te lo voy a explicar de una forma muy fácil:' y usa una comparación sencilla, por ejemplo con una casita, un túnel o un camino. Evita tecnicismos y di las ideas con frases cortas, claras y tranquilas.";
 
-OBJETIVO
-- Explicar el concepto como si se lo estuvieras contando a un niño de ${state.age} años.
-- Usar palabras muy simples, frases cortas, ejemplos cotidianos y un tono amable.
-- Explicar con claridad, precisión y sin inventar datos.
+      return `Eres un experto educador especializado en explicar temas complejos a niños.
+Tu objetivo es simplificar el tema proporcionado para un público de ${request.age} usando un estilo de ${request.style}.
 
-DATOS DE ENTRADA
-Edad objetivo: ${state.age}
-Estilo: ${state.style}
+Directrices:
+- Responde SIEMPRE en Español.
+- Usa vocabulario sencillo apropiado para la edad.
+- Evita tecnicismos o explícalos de inmediato con términos simples.
+- Mantén las frases cortas y claras.
+- Mantén un tono amable, alentador y cercano.
+- Sé conciso pero preciso.
+- Usa frases cortas, muy fáciles de entender.
+- Haz que la explicación suene como una charla amable con un niño.
+${styleGuidance}
+
+Tema: ${request.topic}
 Tipo de entrada: ${entryType}
 Fuente del contenido: ${contentSource}
-Contenido:
-${content}
-
-REGLAS IMPORTANTES (anti-errores)
-1) Responde SIEMPRE en español.
-2) No inventes hechos, números, fechas o causas. Si falta información, di que no está claro y haz una suposición razonable SOLO si es obvio (y etiquétala como "Suposición").
-3) Usa lenguaje sencillo y concreto. Evita tecnicismos innecesarios.
-4) Si aparece un término difícil, primero dilo y luego explica su significado con una frase sencilla.
-5) Piensa como si estuvieras explicándoselo a un niño: usa comparaciones familiares, pasos cortos y ejemplos del día a día.
 
 FORMATO OBLIGATORIO DEL OUTPUT (no omitas secciones)
 A) Idea central (1 frase sencilla)
 B) Explicación paso a paso (3-6 pasos cortos con viñetas)
 C) Ejemplo (1 ejemplo concreto y familiar)
-D) Mini-quiz (${state.age === '5 años' ? '1' : state.age === '10 años' ? '2' : '3'} preguntas cortas)
+D) Mini-quiz (${state.age === ChildAge.FIVE ? '1' : state.age === ChildAge.TEN ? '2' : '3'} preguntas cortas)
 E) Resumen (1-2 frases)
 
 RESTRICCIONES DE LONGITUD
 ${ageRules}
-
-Estilo adicional
-- Simple: explicación directa, pocas metáforas.
-- Analogía: usa una analogía corta y familiar y conecta cada parte con el concepto.
-- Historia: conviértelo en una historia breve con personajes y una moraleja relacionada al aprendizaje.
 
 Entrega el resultado SOLO con el formato solicitado, sin texto extra.`;
     }
@@ -893,7 +908,7 @@ Entrega el resultado SOLO con el formato solicitado, sin texto extra.`;
           {
             role: 'system',
             content:
-              'Eres un asistente educativo especializado en ELI5. Explica como si se lo estuvieras diciendo a un niño, con palabras muy simples, ejemplos cotidianos, frases cortas y un tono amable. Nunca repitas exactamente el texto de la pregunta, siempre da una explicación nueva y clara.'
+              'Eres un experto educador especializado en explicar temas complejos a niños. Usa palabras muy simples, frases cortas, ejemplos cotidianos y un tono amable. Nunca repitas exactamente el texto de la pregunta, siempre da una explicación nueva y clara.'
           },
           {
             role: 'user',
