@@ -464,10 +464,6 @@
         </div>
 
         <form id="mainForm" autocomplete="off">
-          <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
-            <label for="usernameInput">Nombre de usuario</label>
-            <input id="usernameInput" name="username" autocomplete="username" type="text" value="artemis_user" />
-          </div>
           <div class="fieldset">
             <div>
               <label class="field-label" for="apiKey">Clave de API de Groq</label>
@@ -864,24 +860,14 @@ Instrucciones:
 
     async function sendGroqRequest(prompt) {
       const requestBody = {
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Eres un asistente educativo que explica temas complejos de forma clara y sencilla para niños.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        top_p: 0.95,
-        max_tokens: 512
+        model: 'groq-2o-mini',
+        modalities: ['text'],
+        input: prompt,
+        max_output_tokens: 512,
+        temperature: 0.7
       };
 
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const response = await fetch('https://api.groq.com/v1/responses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -902,22 +888,6 @@ Instrucciones:
       }
 
       const payload = await response.json();
-      return extractGroqChatText(payload);
-    }
-
-    function extractGroqChatText(payload) {
-      if (!payload) return '';
-      if (payload.choices && payload.choices.length > 0) {
-        const choice = payload.choices[0];
-        const content = choice.message?.content || choice.text;
-        if (typeof content === 'string') return content.trim();
-        if (Array.isArray(content)) {
-          return content
-            .map((item) => (item?.text || item?.content || ''))
-            .join(' ')
-            .trim();
-        }
-      }
       return extractGroqText(payload);
     }
 
