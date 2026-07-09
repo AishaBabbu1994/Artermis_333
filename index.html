@@ -543,12 +543,12 @@
           <div style="display:flex;justify-content:space-between;align-items:start;gap:16px;flex-wrap:wrap;">
             <div>
               <p class="badge"><i class="fa-solid fa-lightbulb"></i> Resultado</p>
-              <h2 style="margin:14px 0 0;font-size:1.5rem;color:#111827;">Tu explicación simplificada</h2>
+              <h2 style="margin:14px 0 0;font-size:1.5rem;color:#111827;">Tu explicación ELI5</h2>
             </div>
             <button id="copyResultButton" class="button-secondary" type="button" title="Copiar texto">Copiar</button>
           </div>
 
-          <div id="resultBox" class="result-box empty">Tu explicación aparecerá aquí cuando pulses <strong>Analizar ahora</strong>.</div>
+          <div id="resultBox" class="result-box empty">Tu explicación ELI5 aparecerá aquí cuando pulses <strong>Analizar ahora</strong>.</div>
         </div>
 
         <div class="card">
@@ -846,10 +846,12 @@
         '14 años': 'Máximo 14-16 frases. Longitud media-larga. 2 ejemplos y 3 preguntas tipo mini-quiz.'
       }[state.age] || 'Máximo 12-14 frases. Usa vocabulario sencillo y ejemplos claros.';
 
-      return `Eres un asistente educativo que explica temas complejos a niños.
+      return `Eres un asistente educativo especializado en ELI5 (Explain Like I'm Five).
 
 OBJETIVO
-- Explicar el concepto de forma clara, precisa y sin inventar datos.
+- Explicar el concepto como si se lo estuvieras contando a un niño de ${state.age} años.
+- Usar palabras muy simples, frases cortas, ejemplos cotidianos y un tono amable.
+- Explicar con claridad, precisión y sin inventar datos.
 
 DATOS DE ENTRADA
 Edad objetivo: ${state.age}
@@ -862,13 +864,14 @@ ${content}
 REGLAS IMPORTANTES (anti-errores)
 1) Responde SIEMPRE en español.
 2) No inventes hechos, números, fechas o causas. Si falta información, di que no está claro y haz una suposición razonable SOLO si es obvio (y etiquétala como "Suposición").
-3) Evita frases vagas. Define cada idea en una oración.
+3) Usa lenguaje sencillo y concreto. Evita tecnicismos innecesarios.
 4) Si aparece un término difícil, primero dilo y luego explica su significado con una frase sencilla.
+5) Piensa como si estuvieras explicándoselo a un niño: usa comparaciones familiares, pasos cortos y ejemplos del día a día.
 
 FORMATO OBLIGATORIO DEL OUTPUT (no omitas secciones)
-A) Idea central (1 frase)
+A) Idea central (1 frase sencilla)
 B) Explicación paso a paso (3-6 pasos cortos con viñetas)
-C) Ejemplo (1 ejemplo concreto)
+C) Ejemplo (1 ejemplo concreto y familiar)
 D) Mini-quiz (${state.age === '5 años' ? '1' : state.age === '10 años' ? '2' : '3'} preguntas cortas)
 E) Resumen (1-2 frases)
 
@@ -890,7 +893,7 @@ Entrega el resultado SOLO con el formato solicitado, sin texto extra.`;
           {
             role: 'system',
             content:
-              'Eres un asistente educativo que explica temas complejos con un lenguaje sencillo, ejemplos claros y un tono amable. Nunca repitas exactamente el texto de la pregunta, siempre da una explicación nueva.'
+              'Eres un asistente educativo especializado en ELI5. Explica como si se lo estuvieras diciendo a un niño, con palabras muy simples, ejemplos cotidianos, frases cortas y un tono amable. Nunca repitas exactamente el texto de la pregunta, siempre da una explicación nueva y clara.'
           },
           {
             role: 'user',
@@ -1001,7 +1004,7 @@ Entrega el resultado SOLO con el formato solicitado, sin texto extra.`;
         dom.resultBox.innerText = state.currentResult;
       } else {
         dom.resultBox.classList.add('empty');
-        dom.resultBox.innerHTML = 'Tu explicación aparecerá aquí cuando pulses <strong>Analizar ahora</strong>.';
+        dom.resultBox.innerHTML = 'Tu explicación ELI5 aparecerá aquí cuando pulses <strong>Analizar ahora</strong>.';
       }
 
       if (state.history.length > 0) {
